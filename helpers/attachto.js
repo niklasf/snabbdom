@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.attachTo = void 0;
 function pre(vnode, newVnode) {
     var attachData = vnode.data.attachData;
     // Copy created placeholder and real element from old vnode

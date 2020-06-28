@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.h = void 0;
 var vnode_1 = require("./vnode");
 var is = require("./is");
 function addNS(data, children, sel) {
@@ -41,10 +42,10 @@ function h(sel, b, c) {
             data = b;
         }
     }
-    if (is.array(children)) {
+    if (children !== undefined) {
         for (i = 0; i < children.length; ++i) {
             if (is.primitive(children[i]))
-                children[i] = vnode_1.vnode(undefined, undefined, undefined, children[i]);
+                children[i] = vnode_1.vnode(undefined, undefined, undefined, children[i], undefined);
         }
     }
     if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g' &&

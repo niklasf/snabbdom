@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.eventListenersModule = void 0;
 function invokeHandler(handler, vnode, event) {
     if (typeof handler === "function") {
         // call function handler
@@ -22,7 +23,7 @@ function invokeHandler(handler, vnode, event) {
         else {
             // call multiple handlers
             for (var i = 0; i < handler.length; i++) {
-                invokeHandler(handler[i]);
+                invokeHandler(handler[i], vnode, event);
             }
         }
     }

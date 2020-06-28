@@ -1,7 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var raf = (typeof window !== 'undefined' && window.requestAnimationFrame) || setTimeout;
+exports.styleModule = void 0;
+// Bindig `requestAnimationFrame` like this fixes a bug in IE/Edge. See #360 and #409.
+var raf = (typeof window !== 'undefined' && (window.requestAnimationFrame).bind(window)) || setTimeout;
 var nextFrame = function (fn) { raf(function () { raf(fn); }); };
+var reflowForced = false;
 function setNextFrame(obj, prop, val) {
     nextFrame(function () { obj[prop] = val; });
 }
@@ -58,6 +61,10 @@ function applyRemoveStyle(vnode, rm) {
         rm();
         return;
     }
+    if (!reflowForced) {
+        vnode.elm.offsetLeft;
+        reflowForced = true;
+    }
     var name, elm = vnode.elm, i = 0, compStyle, style = s.remove, amount = 0, applied = [];
     for (name in style) {
         applied.push(name);
@@ -76,7 +83,11 @@ function applyRemoveStyle(vnode, rm) {
             rm();
     });
 }
+function forceReflow() {
+    reflowForced = false;
+}
 exports.styleModule = {
+    pre: forceReflow,
     create: updateStyle,
     update: updateStyle,
     destroy: applyDestroyStyle,

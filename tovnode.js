@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.toVNode = void 0;
 var vnode_1 = require("./vnode");
 var htmldomapi_1 = require("./htmldomapi");
 function toVNode(node, domApi) {
@@ -23,7 +24,7 @@ function toVNode(node, domApi) {
             }
         }
         for (i = 0, n = elmChildren.length; i < n; i++) {
-            children.push(toVNode(elmChildren[i]));
+            children.push(toVNode(elmChildren[i], domApi));
         }
         return vnode_1.default(sel, { attrs: attrs }, children, undefined, node);
     }

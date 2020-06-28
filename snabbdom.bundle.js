@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.snabbdomBundle = void 0;
 var snabbdom_1 = require("./snabbdom");
 var attributes_1 = require("./modules/attributes"); // for setting attributes on DOM elements
 var class_1 = require("./modules/class"); // makes it easy to toggle classes

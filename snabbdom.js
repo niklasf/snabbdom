@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.init = void 0;
 var vnode_1 = require("./vnode");
 var is = require("./is");
 var htmldomapi_1 = require("./htmldomapi");
@@ -26,9 +27,9 @@ function createKeyToOldIdx(children, beginIdx, endIdx) {
 }
 var hooks = ['create', 'update', 'remove', 'destroy', 'pre', 'post'];
 var h_1 = require("./h");
-exports.h = h_1.h;
+Object.defineProperty(exports, "h", { enumerable: true, get: function () { return h_1.h; } });
 var thunk_1 = require("./thunk");
-exports.thunk = thunk_1.thunk;
+Object.defineProperty(exports, "thunk", { enumerable: true, get: function () { return thunk_1.thunk; } });
 function init(modules, domApi) {
     var i, j, cbs = {};
     var api = domApi !== undefined ? domApi : htmldomapi_1.default;
@@ -144,7 +145,7 @@ function init(modules, domApi) {
                         rm();
                     }
                 }
-                else {
+                else { // Text node
                     api.removeChild(parentElm, ch.elm);
                 }
             }
@@ -185,13 +186,13 @@ function init(modules, domApi) {
                 oldEndVnode = oldCh[--oldEndIdx];
                 newEndVnode = newCh[--newEndIdx];
             }
-            else if (sameVnode(oldStartVnode, newEndVnode)) {
+            else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
                 patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue);
                 api.insertBefore(parentElm, oldStartVnode.elm, api.nextSibling(oldEndVnode.elm));
                 oldStartVnode = oldCh[++oldStartIdx];
                 newEndVnode = newCh[--newEndIdx];
             }
-            else if (sameVnode(oldEndVnode, newStartVnode)) {
+            else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left
                 patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue);
                 api.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm);
                 oldEndVnode = oldCh[--oldEndIdx];
@@ -202,7 +203,7 @@ function init(modules, domApi) {
                     oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
                 }
                 idxInOld = oldKeyToIdx[newStartVnode.key];
-                if (isUndef(idxInOld)) {
+                if (isUndef(idxInOld)) { // New element
                     api.insertBefore(parentElm, createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm);
                     newStartVnode = newCh[++newStartIdx];
                 }
@@ -220,12 +221,14 @@ function init(modules, domApi) {
                 }
             }
         }
-        if (oldStartIdx > oldEndIdx) {
-            before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
-            addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
-        }
-        else if (newStartIdx > newEndIdx) {
-            removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx);
+        if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
+            if (oldStartIdx > oldEndIdx) {
+                before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
+                addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
+            }
+            else {
+                removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx);
+            }
         }
     }
     function patchVnode(oldVnode, vnode, insertedVnodeQueue) {
@@ -263,6 +266,9 @@ function init(modules, domApi) {
             }
         }
         else if (oldVnode.text !== vnode.text) {
+            if (isDef(oldCh)) {
+                removeVnodes(elm, oldCh, 0, oldCh.length - 1);
+            }
             api.setTextContent(elm, vnode.text);
         }
         if (isDef(hook) && isDef(i = hook.postpatch)) {

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.thunk = void 0;
 var h_1 = require("./h");
 function copyToThunk(vnode, thunk) {
     thunk.elm = vnode.elm;

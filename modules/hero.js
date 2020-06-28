@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.heroModule = void 0;
 var raf = (typeof window !== 'undefined' && window.requestAnimationFrame) || setTimeout;
 var nextFrame = function (fn) { raf(function () { raf(fn); }); };
 function setNextFrame(obj, prop, val) {
@@ -98,7 +99,7 @@ function post() {
             // Animate new element
             origTransform = newStyle.transform;
             origTransition = newStyle.transition;
-            if (newComputedStyle.display === 'inline')
+            if (newComputedStyle.display === 'inline') //inline elements cannot be transformed
                 newStyle.display = 'inline-block'; //this does not appear to have any negative side effects
             newStyle.transition = origTransition + 'transform 0s';
             newStyle.transformOrigin = calcTransformOrigin(isTextNode, newTextRect, newRect);
@@ -109,12 +110,12 @@ function post() {
             setNextFrame(newStyle, 'transform', origTransform);
             setNextFrame(newStyle, 'opacity', '1');
             // Animate old element
-            for (var key in oldVnode.savedStyle) {
+            for (var key in oldVnode.savedStyle) { //re-apply saved inherited properties
                 if (parseInt(key) != key) {
                     var ms = key.substring(0, 2) === 'ms';
                     var moz = key.substring(0, 3) === 'moz';
                     var webkit = key.substring(0, 6) === 'webkit';
-                    if (!ms && !moz && !webkit)
+                    if (!ms && !moz && !webkit) //ignore prefixed style properties
                         oldStyle[key] = oldVnode.savedStyle[key];
                 }
             }
