@@ -1,11 +1,16 @@
-# Snabbdom
+<img src="logo.png" width="356px">
 
 A virtual DOM library with focus on simplicity, modularity, powerful features
 and performance.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT) [![npm version](https://badge.fury.io/js/snabbdom.svg)](https://badge.fury.io/js/snabbdom) [![npm downloads](https://img.shields.io/npm/dm/snabbdom.svg)](https://www.npmjs.com/package/snabbdom)
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://travis-ci.org/snabbdom/snabbdom.svg?branch=master)](https://travis-ci.org/snabbdom/snabbdom)
+[![npm version](https://badge.fury.io/js/snabbdom.svg)](https://badge.fury.io/js/snabbdom)
+[![npm downloads](https://img.shields.io/npm/dm/snabbdom.svg)](https://www.npmjs.com/package/snabbdom)
 [![Join the chat at https://gitter.im/paldepind/snabbdom](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/paldepind/snabbdom?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+Thanks to [Browserstack](https://www.browserstack.com/) for providing access to
+their great cross-browser testing tools.
 
 ## Table of contents
 
@@ -61,6 +66,7 @@ performance, small size and all the features listed below.
   * Server-side HTML output provided by [snabbdom-to-html](https://github.com/acstll/snabbdom-to-html).
   * Compact virtual DOM creation with [snabbdom-helpers](https://github.com/krainboltgreene/snabbdom-helpers).
   * Template string support using [snabby](https://github.com/jamen/snabby).
+  * Virtual DOM assertion with [snabbdom-looks-like](https://github.com/jvanbruegge/snabbdom-looks-like)
 
 ## Inline example
 
@@ -91,6 +97,9 @@ var newVnode = h('div#container.two.classes', {on: {click: anotherEventHandler}}
 ]);
 // Second `patch` invocation
 patch(vnode, newVnode); // Snabbdom efficiently updates the old view to the new state
+
+// to unmount from the DOM and clean up, simply pass null
+patch(newVnode, null)
 ```
 
 ## Examples
@@ -175,7 +184,6 @@ var newVNode = h('div', {style: {color: '#000'}}, [
 ]);
 
 patch(toVNode(document.querySelector('.container')), newVNode)
-
 ```
 
 ### Hooks
@@ -454,6 +462,14 @@ h('div', [
 ]);
 ```
 
+Each handler is called not only with the given arguments but also with the current event and vnode appended to the argument list. It also supports using multiple listeners per event by specifying an array of handlers:
+```javascript
+stopPropagation = function(ev) { ev.stopPropagation() }
+sendValue = function(func, ev, vnode) { func(vnode.elm.value) }
+
+h('a', { on:{ click:[[sendValue, console.log], stopPropagation] } });
+```
+
 Snabbdom allows swapping event handlers between renders. This happens without
 actually touching the event handlers attached to the DOM.
 
@@ -704,6 +720,48 @@ Here are some approaches to building applications with Snabbdom.
 * [puddles](https://github.com/flintinatux/puddles) - 
   "Tiny vdom app framework. Pure Redux. No boilerplate." - Built with :heart: on Snabbdom.
 * [Backbone.VDOMView](https://github.com/jcbrand/backbone.vdomview) - A [Backbone](http://backbonejs.org/) View with VirtualDOM capability via Snabbdom.
+* [Rosmaro Snabbdom starter](https://github.com/lukaszmakuch/rosmaro-snabbdom-starter) - Building user interfaces with state machines and Snabbdom.
+* [Pureact](https://github.com/irony/pureact) - "65 lines implementation of React incl Redux and hooks with only one dependency - Snabbdom"
 
 Be sure to share it if you're building an application in another way
 using Snabbdom.
+
+## Common errors
+
+```
+Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node':
+    The node before which the new node is to be inserted is not a child of this node.
+```
+The reason for this error is reusing of vnodes between patches (see code example), snabbdom stores actual dom nodes inside the virtual dom nodes passed to it as performance improvement, so reusing nodes between patches is not supported.
+```js
+var sharedNode = h('div', {}, 'Selected');
+var vnode1 = h('div', [
+  h('div', {}, ['One']),
+  h('div', {}, ['Two']),
+  h('div', {}, [sharedNode]),
+]);
+var vnode2 = h('div', [
+  h('div', {}, ['One']),
+  h('div', {}, [sharedNode]),
+  h('div', {}, ['Three']),
+]);
+patch(container, vnode1);
+patch(vnode1, vnode2);
+```
+You can fix this issue by creating a shallow copy of the object (here with object spread syntax):
+```js
+var vnode2 = h('div', [
+  h('div', {}, ['One']),
+  h('div', {}, [{ ...sharedNode }]),
+  h('div', {}, ['Three']),
+]);
+```
+Another solution would be to wrap shared vnodes in a factory function:
+```js
+var sharedNode = () => h('div', {}, 'Selected');
+var vnode1 = h('div', [
+  h('div', {}, ['One']),
+  h('div', {}, ['Two']),
+  h('div', {}, [sharedNode()]),
+]);
+```
